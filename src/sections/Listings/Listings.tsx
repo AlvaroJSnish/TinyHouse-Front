@@ -1,12 +1,20 @@
-import React, { FunctionComponent } from 'react';
+import React from 'react';
 import { gql } from 'apollo-boost';
 import { useQuery, useMutation } from 'react-apollo';
 
-import { Listings as ListingsData } from './__generated__/Listings';
+import { Alert, Avatar, Button, List, Spin } from 'antd';
+
+import {
+  Listings as ListingsData,
+  Listings_listings,
+} from './__generated__/Listings';
 import {
   DeleteListing as DeleteListingData,
   DeleteListingVariables,
 } from './__generated__/DeleteListing';
+
+import './styles/Listings.css';
+import { ListingsSkeleton } from './components';
 
 const LISTINGS = gql`
   query Listings {
@@ -36,7 +44,7 @@ interface Props {
   title: string;
 }
 
-export const Listings: FunctionComponent<Props> = ({ title }) => {
+export const Listings = ({ title }: Props) => {
   const { data, loading, refetch, error } = useQuery<ListingsData>(LISTINGS);
   const [
     deleteListing,
@@ -48,37 +56,68 @@ export const Listings: FunctionComponent<Props> = ({ title }) => {
     refetch();
   };
 
-  const renderListings = data?.listings?.map(listing => {
+  const renderListings = (listing: Listings_listings) => {
     return (
-      <li key={listing.id}>
-        {listing.title}
-        <button onClick={() => handleDeleteListing(listing.id)}>
-          Delete a listing
-        </button>
-      </li>
+      <List.Item
+        key={listing.id}
+        actions={[
+          <Button
+            type="primary"
+            onClick={() => handleDeleteListing(listing.id)}
+          >
+            Delete
+          </Button>,
+        ]}
+      >
+        <List.Item.Meta
+          title={listing.title}
+          description={listing.address}
+          avatar={<Avatar src={listing.image} shape="square" size={48} />}
+        />
+      </List.Item>
     );
-  });
-
-  if (deleteListingLoading) {
-    return <h2>Deletion in progress...</h2>;
-  }
+  };
 
   if (deleteListingError) {
     return <h2>Error deleting a listing :(</h2>;
   }
 
   if (loading) {
-    return <h2>Loading...</h2>;
+    return (
+      <div className="listings">
+        <ListingsSkeleton title={title} />
+      </div>
+    );
   }
 
   if (error) {
-    return <h2>Uh oh! Something went wrong - please try again later :(</h2>;
+    return (
+      <div className="listings">
+        <ListingsSkeleton title={title} error />
+      </div>
+    );
   }
 
+  const deleteListingErrorAlert = deleteListingError && (
+    <Alert
+      type="error"
+      message="Uh oh! Something went wrong - please try again later :("
+      className="listings__alert"
+    />
+  );
+
   return (
-    <div>
+    <div className="listings">
+      <Spin spinning={deleteListingLoading} />
       <h2>{title}</h2>
-      <ul>{renderListings}</ul>
+      {deleteListingErrorAlert}
+      <List
+        itemLayout="horizontal"
+        dataSource={data?.listings}
+        renderItem={renderListings}
+      >
+        {renderListings}
+      </List>
     </div>
   );
 };
