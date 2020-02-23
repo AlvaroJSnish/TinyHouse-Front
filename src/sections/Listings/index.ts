@@ -1,3 +1,1 @@
-import Listings from './Listings';
-
-export default Listings;
+export * from './Listings';
