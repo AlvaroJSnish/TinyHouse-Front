@@ -21,7 +21,7 @@ export const ListingCard = ({ listing }: Props) => {
   const { id, title, image, address, price, numOfGuests } = listing;
 
   return (
-    <Link to={`/listings/${id}`}>
+    <Link to={`/listing/${id}`}>
       <Card
         hoverable
         cover={
